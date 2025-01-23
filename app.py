@@ -2,7 +2,7 @@ import os
 import random
 from dotenv import load_dotenv
 from openai import OpenAI
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, redirect, url_for
 
 # טעינת משתני הסביבה
 load_dotenv()
@@ -28,15 +28,16 @@ def get_random_images():
 def get_prediction(archetypes):
     """קבלת חיזוי מ-OpenAI"""
     prompt = f"""בהתבסס על שלושת הארכיטיפים הבאים: {', '.join(archetypes)},
-    צור תחזית עתיד חיובית ומעוררת השראה בעברית (כ-3 משפטים).
-    התחזית צריכה להיות אישית, מעודדת ואופטימית."""
+    צור תחזית עתיד חיובית ומעוררת השראה בעברית(3-4 משפטים).
+    התחזית צריכה להיות אישית, מעודדת ואופטימית ונכתבת בגוף שני.
+    חשוב שהתחזית תהיה מפורטת ותתייחס לכל אחד מהארכיטיפים."""
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
-            max_tokens=200,
+            max_tokens=500,
         )
         return response.choices[0].message.content
     except Exception as e:
@@ -48,6 +49,12 @@ def index():
     """דף הבית"""
     images = get_random_images()
     return render_template("index.html", images=images)
+
+
+@app.route("/new-game")
+def new_game():
+    """התחלת משחק חדש"""
+    return redirect(url_for("index"))
 
 
 @app.route("/predict/<path:archetypes>")

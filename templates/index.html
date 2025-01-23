@@ -11,53 +11,89 @@
   </head>
   <body>
     <div class="container">
-      <h1>ברוכים הבאים למשחק חזון העתיד!</h1>
+      <h1>משחק חזון העתיד</h1>
 
-      <div class="images-container">
-        {% for image in images %}
-        <div class="image-card">
-          <img src="{{ image.path }}" alt="{{ image.name }}" />
-          <h3>{{ image.name }}</h3>
-        </div>
-        {% endfor %}
+      <div class="game-description">
+        ברוכים הבאים למשחק חזון העתיד! כאן תוכלו לגלות את העתיד שלכם בעזרת שילוב
+        ייחודי של ארכיטיפים. המשחק יבחר עבורכם שלוש דמויות מעוררות השראה, ובעזרת
+        בינה מלאכותית מתקדמת, יצור עבורכם חזון עתיד מותאם אישית ומעורר השראה.
       </div>
 
-      <button id="getPrediction" class="prediction-button">
-        קבל את חזון העתיד שלך
-      </button>
+      <button id="startGame" class="button">התחל משחק חדש</button>
 
-      <div
-        id="predictionResult"
-        class="prediction-result"
-        style="display: none"
-      >
-        <h2>חזון העתיד שלך:</h2>
-        <p id="predictionText"></p>
+      <div id="gameContent" class="hidden">
+        <h2 class="section-title">הארכיטיפים שנבחרו עבורך:</h2>
+
+        <div class="images-container">
+          {% for image in images %}
+          <div class="image-card">
+            <img src="{{ image.path }}" alt="{{ image.name }}" />
+            <h3>{{ image.name }}</h3>
+          </div>
+          {% endfor %}
+        </div>
+
+        <button id="getPrediction" class="button">קבל את חזון העתיד שלך</button>
+
+        <div id="predictionResult" class="prediction-result hidden">
+          <div class="loading-overlay">
+            <span class="loader"></span>
+          </div>
+          <h2>חזון העתיד שלך:</h2>
+          <p id="predictionText"></p>
+          <button onclick="window.location.href='/new-game'" class="button">
+            התחל משחק חדש
+          </button>
+        </div>
       </div>
     </div>
 
     <script>
-      document.getElementById('getPrediction').addEventListener('click', async () => {
-          const images = {{ images|tojson }};
-          const archetypes = images.map(img => img.name).join(',');
+      // הפעלת המשחק
+      document.getElementById("startGame").addEventListener("click", () => {
+        document.getElementById("startGame").style.display = "none";
+        document.getElementById("gameContent").classList.remove("hidden");
+      });
+
+      // קבלת החיזוי
+      document
+        .getElementById("getPrediction")
+        .addEventListener("click", async () => {
+          const predictionButton = document.getElementById("getPrediction");
+          const resultDiv = document.getElementById("predictionResult");
+          const predictionText = document.getElementById("predictionText");
 
           try {
-              const response = await fetch(`/predict/${archetypes}`);
-              const data = await response.json();
+            // הצגת אזור התוצאה עם הלודר
+            resultDiv.classList.remove("hidden");
+            resultDiv.classList.add("loading");
+            predictionButton.disabled = true;
 
-              const resultDiv = document.getElementById('predictionResult');
-              const predictionText = document.getElementById('predictionText');
+            // קבלת הארכיטיפים והמרתם למחרוזת
+            const archetypes = Array.from(
+              document.querySelectorAll(".image-card h3")
+            )
+              .map((h3) => h3.textContent.trim())
+              .join(",");
 
-              predictionText.textContent = data.prediction;
-              resultDiv.style.display = 'block';
+            // שליחת הבקשה
+            const response = await fetch(`/predict/${archetypes}`);
+            const data = await response.json();
 
-              // גלילה חלקה לתוצאה
-              resultDiv.scrollIntoView({ behavior: 'smooth' });
+            // הצגת התוצאה
+            predictionText.textContent = data.prediction;
+            resultDiv.classList.remove("loading");
+
+            // גלילה חלקה לתוצאה
+            resultDiv.scrollIntoView({ behavior: "smooth" });
           } catch (error) {
-              console.error('Error:', error);
-              alert('קרתה שגיאה בקבלת החיזוי');
+            console.error("Error:", error);
+            alert("קרתה שגיאה בקבלת החיזוי");
+            resultDiv.classList.add("hidden");
+          } finally {
+            predictionButton.disabled = false;
           }
-      });
+        });
     </script>
   </body>
 </html>

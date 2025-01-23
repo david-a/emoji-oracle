@@ -23,8 +23,27 @@ body {
 h1 {
   text-align: center;
   color: #2c3e50;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   font-size: 2.5rem;
+}
+
+.game-description {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 2rem;
+  font-size: 1.2rem;
+  color: #666;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  text-align: center;
+  color: #2c3e50;
+  margin: 2rem 0;
+  font-size: 1.8rem;
 }
 
 .images-container {
@@ -40,6 +59,7 @@ h1 {
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
+  position: relative;
 }
 
 .image-card:hover {
@@ -59,7 +79,7 @@ h1 {
   color: #2c3e50;
 }
 
-.prediction-button {
+.button {
   display: block;
   margin: 2rem auto;
   padding: 1rem 2rem;
@@ -69,11 +89,19 @@ h1 {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
-.prediction-button:hover {
+.button:hover {
   background-color: #2980b9;
+  transform: translateY(-2px);
+}
+
+.button:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .prediction-result {
@@ -96,6 +124,50 @@ h1 {
   white-space: pre-line;
 }
 
+/* Loader */
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 5px solid #fff;
+  border-bottom-color: #3498db;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  border-radius: 10px;
+}
+
+.loading .loading-overlay {
+  display: block;
+}
+
+@keyframes rotation {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.hidden {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 1rem;
@@ -111,5 +183,10 @@ h1 {
 
   .image-card img {
     height: 250px;
+  }
+
+  .game-description {
+    font-size: 1.1rem;
+    padding: 1rem;
   }
 }
