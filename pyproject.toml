@@ -2,7 +2,7 @@
 name = "image-generator"
 version = "0.1.0"
 description = "Generate images from prompts using Dreamlook API"
-dependencies = ["requests", "openai", "python-dotenv>=1.0.1"]
+dependencies = ["requests", "openai", "python-dotenv>=1.0.1", "flask>=3.0.0"]
 
 [tool.ruff]
 line-length = 88

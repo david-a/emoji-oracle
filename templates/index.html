@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>משחק חזון העתיד</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>ברוכים הבאים למשחק חזון העתיד!</h1>
+
+      <div class="images-container">
+        {% for image in images %}
+        <div class="image-card">
+          <img src="{{ image.path }}" alt="{{ image.name }}" />
+          <h3>{{ image.name }}</h3>
+        </div>
+        {% endfor %}
+      </div>
+
+      <button id="getPrediction" class="prediction-button">
+        קבל את חזון העתיד שלך
+      </button>
+
+      <div
+        id="predictionResult"
+        class="prediction-result"
+        style="display: none"
+      >
+        <h2>חזון העתיד שלך:</h2>
+        <p id="predictionText"></p>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById('getPrediction').addEventListener('click', async () => {
+          const images = {{ images|tojson }};
+          const archetypes = images.map(img => img.name).join(',');
+
+          try {
+              const response = await fetch(`/predict/${archetypes}`);
+              const data = await response.json();
+
+              const resultDiv = document.getElementById('predictionResult');
+              const predictionText = document.getElementById('predictionText');
+
+              predictionText.textContent = data.prediction;
+              resultDiv.style.display = 'block';
+
+              // גלילה חלקה לתוצאה
+              resultDiv.scrollIntoView({ behavior: 'smooth' });
+          } catch (error) {
+              console.error('Error:', error);
+              alert('קרתה שגיאה בקבלת החיזוי');
+          }
+      });
+    </script>
+  </body>
+</html>
