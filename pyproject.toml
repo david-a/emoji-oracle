@@ -1,14 +1,22 @@
-[project]
+[tool.poetry]
 name = "emoji-oracle"
 version = "0.1.0"
 description = "משחק ״הקורא באימוג׳י״"
-dependencies = [
-  "requests",
-  "python-dotenv>=1.0.1",
-  "flask[async]>=3.0.0",
-  "asgiref>=3.2.0",
-  "openai>=1.60.0",
-]
+authors = []
+readme = "README.md"
+packages = [{ include = "app.py" }]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+requests = "*"
+python-dotenv = "^1.0.1"
+flask = { extras = ["async"], version = "^3.0.0" }
+asgiref = "^3.2.0"
+openai = "^1.60.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 88
