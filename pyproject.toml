@@ -4,10 +4,10 @@ version = "0.1.0"
 description = "משחק ״הקורא באימוג׳י״"
 dependencies = [
   "requests",
-  "openai",
   "python-dotenv>=1.0.1",
   "flask[async]>=3.0.0",
-  "asgiref>=3.2.0"
+  "asgiref>=3.2.0",
+  "openai>=1.60.0",
 ]
 
 [tool.ruff]
