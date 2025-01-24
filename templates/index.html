@@ -351,6 +351,10 @@
                 readBtn.textContent = "קבל את הקריאה שלך ✨";
                 readBtn.disabled = false;
                 isSpinning = false;
+                // Add smooth scrolling to the read button
+                setTimeout(() => {
+                  readBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+                }, 300);
               }
             }, 1200 + (rowIndex * 600) + (reelIndex * 300));
           });
