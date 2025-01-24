@@ -329,14 +329,14 @@
             const randomEmojiStrip = createRandomEmojiStrip(
               currentEmojiSets[rowIndex][reelIndex],
               allEmojis,
-              30
+              15
             );
 
             strip.innerHTML = randomEmojiStrip
               .map((emoji) => `<div class="final-emoji">${emoji}</div>`)
               .join("");
 
-            const duration = 4 + reelIndex * 0.5;
+            const duration = 0.1 + (reelIndex * 0.1);
             strip.style.animation = `spin ${duration}s linear infinite`;
 
             // עצירת הסיבוב עם השהייה שונה לכל גלגל
@@ -352,7 +352,7 @@
                 readBtn.disabled = false;
                 isSpinning = false;
               }
-            }, 4000 + rowIndex * 1000 + reelIndex * 500);
+            }, 1200 + (rowIndex * 600) + (reelIndex * 300));
           });
         });
       }
@@ -361,7 +361,6 @@
         const readingDiv = document.getElementById("reading");
         const readBtn = document.getElementById("readBtn");
 
-        // מנטרל את הכפתור ומציג טעינה
         readBtn.disabled = true;
         readingDiv.innerHTML = `
           <span class="loading-text">
@@ -369,6 +368,9 @@
           </span>
         `;
         readingDiv.classList.add("visible");
+
+        // גלילה מהירה לאזור הטעינה
+        readingDiv.scrollIntoView({ behavior: "auto", block: "center" });
 
         try {
           const response = await fetch("/get-reading", {
@@ -380,8 +382,6 @@
           });
 
           const data = await response.json();
-
-          // מנקה את תוכן הדיב
           readingDiv.innerHTML = "";
 
           // מציג את הטקסט בסטרימינג
@@ -393,11 +393,15 @@
             span.style.animationDelay = `${i * 50}ms`;
             readingDiv.appendChild(span);
 
-            // מחכה מעט בין המילים
-            await new Promise((resolve) => setTimeout(resolve, 50));
+            // מחכה יותר זמן בין המילים
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            
+            // גלילה מהירה יותר אבל בתדירות נמוכה יותר
+            if (i % 5 === 0) { // כל 5 מילים במקום 10
+              readingDiv.scrollIntoView({ behavior: "auto", block: "center" });
+            }
           }
 
-          // מעדכן את כפתור הקריאה
           readBtn.textContent = "לא התחברתי, נסה שוב";
           readBtn.disabled = false;
         } catch (error) {
