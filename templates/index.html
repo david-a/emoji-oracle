@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -70,46 +70,170 @@
         font-size: 2em;
         margin: 20px 0;
       }
+      .slot-machine {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin: 30px 0;
+      }
+      .slot-reel {
+        height: 100px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+        display: none; /* Hidden by default */
+      }
+      .slot-reel.spinning {
+        display: block;
+      }
+      .emoji-strip {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        animation: spin 0.5s linear infinite;
+        font-size: 2em;
+      }
+      @keyframes spin {
+        0% {
+          transform: translateY(0);
+        }
+        100% {
+          transform: translateY(-50px);
+        }
+      }
+      .slot-result {
+        font-size: 2em;
+        background: rgba(255, 255, 255, 0.15);
+        padding: 20px;
+        border-radius: 15px;
+        margin: 10px 0;
+        display: none; /* Hidden by default */
+      }
+      .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+      }
+      #generateBtn {
+        background: #e94560;
+        font-size: 1.5em;
+        padding: 20px 40px;
+        transition: all 0.3s ease;
+      }
+      #generateBtn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(233, 69, 96, 0.4);
+      }
+      #generateBtn:disabled {
+        background: #666;
+        cursor: not-allowed;
+        transform: none;
+      }
+      #readBtn {
+        display: none;
+        background: #4caf50;
+      }
+      .reading {
+        opacity: 0;
+        transition: opacity 0.5s ease;
+      }
+      .reading.visible {
+        opacity: 1;
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>🔮 הקורא באמוג'י 🔮</h1>
-      <button id="generateBtn" onclick="generateEmojis()">
-        הגרל אמוג'ים חדשים
-      </button>
-      <div class="emoji-sets" id="emojiSets"></div>
-      <button id="readBtn" onclick="getReading()" style="display: none">
-        קבל קריאה
-      </button>
+
+      <div class="controls">
+        <button id="generateBtn" onclick="startSlotMachine()">
+          סובב את גלגל המזל 🎰
+        </button>
+        <button id="readBtn" onclick="getReading()" style="display: none">
+          קבל את הקריאה שלך ✨
+        </button>
+      </div>
+
+      <div class="slot-machine">
+        <div class="slot-reel" id="reel1">
+          <div class="emoji-strip"></div>
+        </div>
+        <div class="slot-reel" id="reel2">
+          <div class="emoji-strip"></div>
+        </div>
+        <div class="slot-reel" id="reel3">
+          <div class="emoji-strip"></div>
+        </div>
+      </div>
+
+      <div class="slot-results">
+        <div class="slot-result" id="result1"></div>
+        <div class="slot-result" id="result2"></div>
+        <div class="slot-result" id="result3"></div>
+      </div>
+
       <div class="reading" id="reading"></div>
     </div>
 
     <script>
       let currentEmojiSets = [];
+      let isSpinning = false;
 
-      async function generateEmojis() {
+      function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      }
+
+      async function startSlotMachine() {
+        if (isSpinning) return;
+
+        isSpinning = true;
+        document.getElementById("generateBtn").disabled = true;
+
+        // Get emoji sets from server
         const response = await fetch("/generate-emojis");
         const data = await response.json();
         currentEmojiSets = data.emoji_sets;
 
-        const setsContainer = document.getElementById("emojiSets");
-        setsContainer.innerHTML = "";
+        // Show and start spinning reels
+        const reels = document.querySelectorAll(".slot-reel");
+        reels.forEach((reel, i) => {
+          reel.style.display = "block";
+          const strip = reel.querySelector(".emoji-strip");
 
-        data.emoji_sets.forEach((set, index) => {
-          const setDiv = document.createElement("div");
-          setDiv.className = "emoji-set";
-          setDiv.innerHTML = set.join(" ");
-          setsContainer.appendChild(setDiv);
+          // Create a random sequence of emojis for animation
+          const randomEmojis = shuffleArray([
+            ...currentEmojiSets[i],
+            ...currentEmojiSets[i],
+          ]);
+          strip.innerHTML = randomEmojis.join("<br>");
+
+          // Start spinning with different delays
+          setTimeout(() => {
+            strip.style.animation = "none";
+            reel.style.display = "none";
+            document.getElementById(`result${i + 1}`).style.display = "block";
+            document.getElementById(`result${i + 1}`).innerHTML =
+              currentEmojiSets[i].join(" ");
+
+            // Show read button when all reels stopped
+            if (i === 2) {
+              document.getElementById("readBtn").style.display = "inline-block";
+            }
+          }, 2000 + i * 500);
         });
-
-        document.getElementById("readBtn").style.display = "inline-block";
-        document.getElementById("reading").innerHTML = "";
       }
 
       async function getReading() {
         const readingDiv = document.getElementById("reading");
         readingDiv.innerHTML = "🔮 מנתח את האמוג'ים...";
+        readingDiv.classList.add("visible");
 
         try {
           const response = await fetch("/get-reading", {
@@ -126,9 +250,6 @@
           readingDiv.innerHTML = "❌ אופס! משהו השתבש בקריאה";
         }
       }
-
-      // Generate initial set of emojis when page loads
-      generateEmojis();
     </script>
   </body>
 </html>
