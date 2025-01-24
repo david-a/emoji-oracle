@@ -23,12 +23,77 @@ def load_emojis():
 class EmojiReader:
     def __init__(self):
         self.emojis = load_emojis()["emojis"]
+        # Blacklist of emojis with negative connotations
+        self.negative_emojis = {
+            "😒",
+            "😞",
+            "😔",
+            "😟",
+            "😕",
+            "🙁",
+            "☹️",
+            "😣",
+            "😖",
+            "😫",
+            "😩",
+            "😢",
+            "😭",
+            "😤",
+            "😠",
+            "😡",
+            "🤬",
+            "😈",
+            "👿",
+            "💀",
+            "☠️",
+            "👻",
+            "👺",
+            "👹",
+            "🤡",
+            "💩",
+            "🤮",
+            "🤢",
+            "🤕",
+            "🤒",
+            "😷",
+            "🤧",
+            "🥵",
+            "🥶",
+            "🤯",
+            "😱",
+            "😨",
+            "😰",
+            "😥",
+            "😓",
+            "🙄",
+            "😑",
+            "😐",
+            "😶",
+            "🌧️",
+            "⛈️",
+            "🌩️",
+            "🌪️",
+            "💣",
+            "🗡️",
+            "⚔️",
+            "🔪",
+            "⚰️",
+            "⚱️",
+            "🏴‍☠️",
+        }
 
     def generate_emoji_sets(self):
         """Generate 3 sets of 3 random emojis"""
         sets = []
-        for _ in range(3):
-            emoji_set = random.sample(self.emojis, 3)
+        for set_index in range(3):
+            if set_index == 2:  # For the third set (future)
+                # Filter out negative emojis for the future set
+                positive_emojis = [
+                    emoji for emoji in self.emojis if emoji not in self.negative_emojis
+                ]
+                emoji_set = random.sample(positive_emojis, 3)
+            else:
+                emoji_set = random.sample(self.emojis, 3)
             sets.append(emoji_set)
         return sets
 
