@@ -1,7 +1,7 @@
 [project]
-name = "image-generator"
+name = "emoji-oracle"
 version = "0.1.0"
-description = "Generate images from prompts using Dreamlook API"
+description = "משחק ״הקורא באימוג׳י״"
 dependencies = [
   "requests",
   "openai",
