@@ -40,6 +40,9 @@ ENV/
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-Thumbs.db 
+Thumbs.db
 
+# Project specific
+generated_images/
 ignored-docs/
+uv.lock
