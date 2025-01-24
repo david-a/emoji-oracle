@@ -90,6 +90,9 @@
         overflow: hidden;
         position: relative;
         display: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .slot-reel.spinning {
         display: block;
@@ -100,6 +103,10 @@
         text-align: center;
         animation: spin 2s linear infinite;
         font-size: 2em;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
       }
       @keyframes spin {
         0% {
@@ -153,6 +160,11 @@
       #readBtn {
         display: none;
         background: #4caf50;
+        margin-top: 20px;
+      }
+      #readBtn:disabled {
+        background: #666;
+        cursor: not-allowed;
       }
       .reading {
         opacity: 0;
@@ -160,6 +172,48 @@
       }
       .reading.visible {
         opacity: 1;
+      }
+      .final-emoji {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        width: 100%;
+        font-size: 1.6em;
+        padding-bottom: 10px;
+      }
+      @keyframes loadingDots {
+        0% {
+          content: ".";
+        }
+        33% {
+          content: "..";
+        }
+        66% {
+          content: "...";
+        }
+        100% {
+          content: ".";
+        }
+      }
+      .loading-dots::after {
+        content: ".";
+        animation: loadingDots 1.5s infinite;
+        display: inline-block;
+        width: 20px;
+        text-align: left;
+      }
+      .streaming-text {
+        opacity: 0;
+        animation: fadeIn 0.3s forwards;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
       }
     </style>
   </head>
@@ -261,6 +315,7 @@
         isSpinning = true;
         document.getElementById("generateBtn").disabled = true;
         document.getElementById("readBtn").style.display = "none";
+        document.getElementById("reading").innerHTML = "";
 
         // Get emoji sets from server
         const response = await fetch("/generate-emojis");
@@ -285,7 +340,7 @@
             );
 
             strip.innerHTML = randomEmojiStrip
-              .map((emoji) => `<div style="padding: 10px 0;">${emoji}</div>`)
+              .map((emoji) => `<div class="final-emoji">${emoji}</div>`)
               .join("");
 
             const duration = 4 + reelIndex * 0.5;
@@ -294,13 +349,14 @@
             // עצירת הסיבוב עם השהייה שונה לכל גלגל
             setTimeout(() => {
               strip.style.animation = "none";
-              // במקום להסתיר את הגלגל, נציג רק את האימוג'י הסופי
-              strip.innerHTML = `<div style="padding: 10px 0;">${currentEmojiSets[rowIndex][reelIndex]}</div>`;
+              strip.innerHTML = `<div class="final-emoji">${currentEmojiSets[rowIndex][reelIndex]}</div>`;
 
               // הצגת כפתור הקריאה כשכל הגלגלים נעצרו
               if (rowIndex === 2 && reelIndex === 2) {
-                document.getElementById("readBtn").style.display =
-                  "inline-block";
+                const readBtn = document.getElementById("readBtn");
+                readBtn.style.display = "inline-block";
+                readBtn.textContent = "קבל את הקריאה שלך ✨";
+                readBtn.disabled = false;
                 isSpinning = false;
               }
             }, 4000 + rowIndex * 1000 + reelIndex * 500);
@@ -310,7 +366,11 @@
 
       async function getReading() {
         const readingDiv = document.getElementById("reading");
-        readingDiv.innerHTML = "🔮 מנתח את האמוג'ים...";
+        const readBtn = document.getElementById("readBtn");
+
+        // מנטרל את הכפתור ומציג טעינה
+        readBtn.disabled = true;
+        readingDiv.innerHTML = `<span>מנתח את האמוג'ים<span class="loading-dots"></span></span>`;
         readingDiv.classList.add("visible");
 
         try {
@@ -323,9 +383,29 @@
           });
 
           const data = await response.json();
-          readingDiv.innerHTML = data.reading;
+
+          // מנקה את תוכן הדיב
+          readingDiv.innerHTML = "";
+
+          // מציג את הטקסט בסטרימינג
+          const words = data.reading.split(" ");
+          for (let i = 0; i < words.length; i++) {
+            const span = document.createElement("span");
+            span.textContent = words[i] + " ";
+            span.className = "streaming-text";
+            span.style.animationDelay = `${i * 50}ms`;
+            readingDiv.appendChild(span);
+
+            // מחכה מעט בין המילים
+            await new Promise((resolve) => setTimeout(resolve, 50));
+          }
+
+          // מעדכן את כפתור הקריאה
+          readBtn.textContent = "לא התחברתי, נסה שוב";
+          readBtn.disabled = false;
         } catch (error) {
           readingDiv.innerHTML = "❌ אופס! משהו השתבש בקריאה";
+          readBtn.disabled = false;
         }
       }
     </script>
