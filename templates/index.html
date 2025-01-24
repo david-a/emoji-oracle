@@ -70,45 +70,64 @@
         font-size: 2em;
         margin: 20px 0;
       }
-      .slot-machine {
+      .slot-rows {
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 30px;
         margin: 30px 0;
       }
+      .slot-row {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        height: 100px;
+      }
       .slot-reel {
+        flex: 0 0 100px;
         height: 100px;
         background: rgba(255, 255, 255, 0.1);
         border-radius: 15px;
         overflow: hidden;
         position: relative;
-        display: none; /* Hidden by default */
+        display: none;
       }
       .slot-reel.spinning {
         display: block;
       }
       .emoji-strip {
         position: absolute;
-        display: flex;
-        flex-direction: column;
-        animation: spin 0.5s linear infinite;
+        width: 100%;
+        text-align: center;
+        animation: spin 2s linear infinite;
         font-size: 2em;
       }
       @keyframes spin {
         0% {
-          transform: translateY(0);
+          transform: translateY(-100%);
         }
         100% {
-          transform: translateY(-50px);
+          transform: translateY(0);
         }
       }
+      .slot-results {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        margin: 20px 0;
+      }
+      .result-row {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+      }
       .slot-result {
+        flex: 0 0 100px;
         font-size: 2em;
         background: rgba(255, 255, 255, 0.15);
         padding: 20px;
         border-radius: 15px;
-        margin: 10px 0;
-        display: none; /* Hidden by default */
+        display: none;
+        text-align: center;
       }
       .controls {
         display: flex;
@@ -157,22 +176,58 @@
         </button>
       </div>
 
-      <div class="slot-machine">
-        <div class="slot-reel" id="reel1">
-          <div class="emoji-strip"></div>
+      <div class="slot-rows">
+        <div class="slot-row" id="row1">
+          <div class="slot-reel">
+            <div class="emoji-strip"></div>
+          </div>
+          <div class="slot-reel">
+            <div class="emoji-strip"></div>
+          </div>
+          <div class="slot-reel">
+            <div class="emoji-strip"></div>
+          </div>
         </div>
-        <div class="slot-reel" id="reel2">
-          <div class="emoji-strip"></div>
+        <div class="slot-row" id="row2">
+          <div class="slot-reel">
+            <div class="emoji-strip"></div>
+          </div>
+          <div class="slot-reel">
+            <div class="emoji-strip"></div>
+          </div>
+          <div class="slot-reel">
+            <div class="emoji-strip"></div>
+          </div>
         </div>
-        <div class="slot-reel" id="reel3">
-          <div class="emoji-strip"></div>
+        <div class="slot-row" id="row3">
+          <div class="slot-reel">
+            <div class="emoji-strip"></div>
+          </div>
+          <div class="slot-reel">
+            <div class="emoji-strip"></div>
+          </div>
+          <div class="slot-reel">
+            <div class="emoji-strip"></div>
+          </div>
         </div>
       </div>
 
       <div class="slot-results">
-        <div class="slot-result" id="result1"></div>
-        <div class="slot-result" id="result2"></div>
-        <div class="slot-result" id="result3"></div>
+        <div class="result-row">
+          <div class="slot-result"></div>
+          <div class="slot-result"></div>
+          <div class="slot-result"></div>
+        </div>
+        <div class="result-row">
+          <div class="slot-result"></div>
+          <div class="slot-result"></div>
+          <div class="slot-result"></div>
+        </div>
+        <div class="result-row">
+          <div class="slot-result"></div>
+          <div class="slot-result"></div>
+          <div class="slot-result"></div>
+        </div>
       </div>
 
       <div class="reading" id="reading"></div>
@@ -190,43 +245,66 @@
         return array;
       }
 
+      function createRandomEmojiStrip(finalEmoji, allEmojis, count = 20) {
+        const randomEmojis = [];
+        for (let i = 0; i < count; i++) {
+          const randomIndex = Math.floor(Math.random() * allEmojis.length);
+          randomEmojis.push(allEmojis[randomIndex]);
+        }
+        randomEmojis.push(finalEmoji);
+        return randomEmojis;
+      }
+
       async function startSlotMachine() {
         if (isSpinning) return;
 
         isSpinning = true;
         document.getElementById("generateBtn").disabled = true;
+        document.getElementById("readBtn").style.display = "none";
 
         // Get emoji sets from server
         const response = await fetch("/generate-emojis");
         const data = await response.json();
         currentEmojiSets = data.emoji_sets;
+        const allEmojis = data.all_emojis;
 
-        // Show and start spinning reels
-        const reels = document.querySelectorAll(".slot-reel");
-        reels.forEach((reel, i) => {
-          reel.style.display = "block";
-          const strip = reel.querySelector(".emoji-strip");
+        // Show and start spinning reels for each row
+        const rows = document.querySelectorAll(".slot-row");
+        rows.forEach((row, rowIndex) => {
+          const reels = row.querySelectorAll(".slot-reel");
 
-          // Create a random sequence of emojis for animation
-          const randomEmojis = shuffleArray([
-            ...currentEmojiSets[i],
-            ...currentEmojiSets[i],
-          ]);
-          strip.innerHTML = randomEmojis.join("<br>");
+          reels.forEach((reel, reelIndex) => {
+            reel.style.display = "block";
+            const strip = reel.querySelector(".emoji-strip");
 
-          // Start spinning with different delays
-          setTimeout(() => {
-            strip.style.animation = "none";
-            reel.style.display = "none";
-            document.getElementById(`result${i + 1}`).style.display = "block";
-            document.getElementById(`result${i + 1}`).innerHTML =
-              currentEmojiSets[i].join(" ");
+            // יצירת רצף אקראי של אימוג'ים לכל גלגל
+            const randomEmojiStrip = createRandomEmojiStrip(
+              currentEmojiSets[rowIndex][reelIndex],
+              allEmojis,
+              30
+            );
 
-            // Show read button when all reels stopped
-            if (i === 2) {
-              document.getElementById("readBtn").style.display = "inline-block";
-            }
-          }, 2000 + i * 500);
+            strip.innerHTML = randomEmojiStrip
+              .map((emoji) => `<div style="padding: 10px 0;">${emoji}</div>`)
+              .join("");
+
+            const duration = 4 + reelIndex * 0.5;
+            strip.style.animation = `spin ${duration}s linear infinite`;
+
+            // עצירת הסיבוב עם השהייה שונה לכל גלגל
+            setTimeout(() => {
+              strip.style.animation = "none";
+              // במקום להסתיר את הגלגל, נציג רק את האימוג'י הסופי
+              strip.innerHTML = `<div style="padding: 10px 0;">${currentEmojiSets[rowIndex][reelIndex]}</div>`;
+
+              // הצגת כפתור הקריאה כשכל הגלגלים נעצרו
+              if (rowIndex === 2 && reelIndex === 2) {
+                document.getElementById("readBtn").style.display =
+                  "inline-block";
+                isSpinning = false;
+              }
+            }, 4000 + rowIndex * 1000 + reelIndex * 500);
+          });
         });
       }
 

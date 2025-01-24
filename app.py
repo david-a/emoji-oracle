@@ -70,7 +70,8 @@ def index():
 def generate_emojis():
     reader = EmojiReader()
     emoji_sets = reader.generate_emoji_sets()
-    return jsonify({"emoji_sets": emoji_sets})
+    all_emojis = reader.emojis  # שולח את כל האימוג'ים האפשריים
+    return jsonify({"emoji_sets": emoji_sets, "all_emojis": all_emojis})
 
 
 @app.route("/get-reading", methods=["POST"])
