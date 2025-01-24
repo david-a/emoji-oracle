@@ -1,78 +1,85 @@
-import os
+from flask import Flask, render_template, jsonify, request
 import random
-from dotenv import load_dotenv
+import json
+from pathlib import Path
 from openai import OpenAI
-from flask import Flask, render_template, jsonify, redirect, url_for
+from dotenv import load_dotenv
+import os
 
-# טעינת משתני הסביבה
+# Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-def get_random_images():
-    """בחירת 3 תמונות אקראיות מהתיקייה"""
-    images_dir = "generated_images"
-    all_images = [f for f in os.listdir(images_dir) if f.endswith(".jpeg")]
-    selected = random.sample(all_images, 3)
-    return [
-        {
-            "path": f"/static/generated_images/{img}",
-            "name": img.replace(".jpeg", "").replace("the_", ""),
-        }
-        for img in selected
-    ]
+# Load emoji data
+def load_emojis():
+    current_dir = Path(__file__).parent
+    with open(current_dir / "data" / "emojis.json", "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
-def get_prediction(archetypes):
-    """קבלת חיזוי מ-OpenAI"""
-    prompt = f"""בהתבסס על שלושת הארכיטיפים הבאים: {', '.join(archetypes)},
-    צור תחזית עתיד חיובית ומעוררת השראה בעברית(3-4 משפטים).
-    התחזית צריכה להיות אישית, מעודדת ואופטימית ונכתבת בגוף שני.
-    חשוב שהתחזית תהיה מפורטת ותתייחס לכל אחד מהארכיטיפים."""
+class EmojiReader:
+    def __init__(self):
+        self.emojis = load_emojis()["emojis"]
 
-    try:
+    def generate_emoji_sets(self):
+        """Generate 3 sets of 3 random emojis"""
+        sets = []
+        for _ in range(3):
+            emoji_set = random.sample(self.emojis, 3)
+            sets.append(emoji_set)
+        return sets
+
+    def get_reading(self, emoji_sets):
+        """Get a mystical reading based on the emoji combinations"""
+        emoji_description = "\n".join(
+            [f"סט {i+1}: {' '.join(set)}" for i, set in enumerate(emoji_sets)]
+        )
+
+        prompt = f"""אתה ״הקורא באמוג'י״ שקורא את סיפורו של האדם שמולך דרך שילובי אמוג'ים.
+        הוצגו בפניך שלושה סטים של אמוג'ים:
+        
+        {emoji_description}
+        
+        ספק קריאה יצירתית, מיסטית ומעניינת ש:
+        1. מפרשת הסט הראשון כמייצג עבר, השני כמייצג הווה והשלישי כמייצג עתיד
+        2. מוצאת קשרים בין הסטים
+        3. מציעה תובנות והכוונה עדינה
+        4. שומרת על טון מיסטי אך משחקי
+        5. חשוב מאוד שהסיפור יתאר מגמה חיובית וטובה
+        
+        שמור על תשובה קצרה וזורמת של עד 250 מילים ועצב אותה יפה עם קישוטי אמוג'י."""
+
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=500,
+            messages=[{"role": "system", "content": prompt}],
+            temperature=0.8,
         )
+
         return response.choices[0].message.content
-    except Exception as e:
-        return str(e)
 
 
 @app.route("/")
 def index():
-    """דף הבית"""
-    images = get_random_images()
-    return render_template("index.html", images=images)
+    return render_template("index.html")
 
 
-@app.route("/new-game")
-def new_game():
-    """התחלת משחק חדש"""
-    return redirect(url_for("index"))
+@app.route("/generate-emojis", methods=["GET"])
+def generate_emojis():
+    reader = EmojiReader()
+    emoji_sets = reader.generate_emoji_sets()
+    return jsonify({"emoji_sets": emoji_sets})
 
 
-@app.route("/predict/<path:archetypes>")
-def predict(archetypes):
-    """נקודת קצה לקבלת חיזוי"""
-    archetype_list = archetypes.split(",")
-    prediction = get_prediction(archetype_list)
-    return jsonify({"prediction": prediction})
+@app.route("/get-reading", methods=["POST"])
+def get_reading():
+    emoji_sets = request.json["emoji_sets"]
+    reader = EmojiReader()
+    reading = reader.get_reading(emoji_sets)
+    return jsonify({"reading": reading})
 
 
 if __name__ == "__main__":
-    # העתקת התמונות לתיקיית static
-    os.makedirs("static/generated_images", exist_ok=True)
-    for img in os.listdir("generated_images"):
-        if img.endswith(".jpeg"):
-            src = os.path.join("generated_images", img)
-            dst = os.path.join("static/generated_images", img)
-            if not os.path.exists(dst):
-                os.system(f'cp "{src}" "{dst}"')
-
     app.run(debug=True)
