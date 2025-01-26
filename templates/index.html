@@ -40,18 +40,13 @@
         justify-content: center;
         padding: 20px;
       }
-      @media (min-width: 768px) {
-        .start-container, .reading {
-          max-width: 800px;
-        }
-      }
       .start-container {
         max-width: 800px;
         margin: 0 auto;
         text-align: center;
       }
       h1 {
-        font-size: 2.5em;
+        font-size: 2em;
         margin-bottom: 30px;
         color: #e94560;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
@@ -250,6 +245,14 @@
         }
         to {
           opacity: 1;
+        }
+      }
+      @media (min-width: 768px) {
+        .start-container, .reading {
+          max-width: 800px;
+        }
+        h1 {
+          font-size: 3em;
         }
       }
     </style>
