@@ -34,6 +34,18 @@
         direction: rtl;
       }
       .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      @media (min-width: 768px) {
+        .start-container, .reading {
+          max-width: 800px;
+        }
+      }
+      .start-container {
         max-width: 800px;
         margin: 0 auto;
         text-align: center;
@@ -244,64 +256,70 @@
   </head>
   <body>
     <div class="container">
-      <h1>🔮 הקורא באמוג'י 🔮</h1>
+      <div class="start-container">
+        <h1>🔮 הקורא באמוג'י 🔮</h1>
 
-      <div class="controls">
-        <button id="generateBtn" onclick="startSlotMachine()">
-          סובב את גלגל המזל 🎰
+        <div class="controls">
+          <button id="generateBtn" onclick="startSlotMachine()">
+            סובב את גלגל המזל 🎰
+          </button>
+        </div>
+
+        <div class="slot-rows">
+          <div class="slot-row" id="row1">
+            <div class="slot-reel">
+              <div class="emoji-strip"></div>
+            </div>
+            <div class="slot-reel">
+              <div class="emoji-strip"></div>
+            </div>
+            <div class="slot-reel">
+              <div class="emoji-strip"></div>
+            </div>
+          </div>
+          <div class="slot-row" id="row2">
+            <div class="slot-reel">
+              <div class="emoji-strip"></div>
+            </div>
+            <div class="slot-reel">
+              <div class="emoji-strip"></div>
+            </div>
+            <div class="slot-reel">
+              <div class="emoji-strip"></div>
+            </div>
+          </div>
+          <div class="slot-row" id="row3">
+            <div class="slot-reel">
+              <div class="emoji-strip"></div>
+            </div>
+            <div class="slot-reel">
+              <div class="emoji-strip"></div>
+            </div>
+            <div class="slot-reel">
+              <div class="emoji-strip"></div>
+            </div>
+          </div>
+        </div>
+
+        
+
+        <div class="controls"></div>
+          <button id="readBtn" onclick="getReading()" style="display: none">
+            קבל את הקריאה שלך ✨
+          </button>
+        </div>
+
+        <div class="reading" id="reading"></div>
+        <button id="shareBtn" style="display: none; margin-top: 20px; background: #4CAF50;">
+          שתף את החיזוי שלך 🔮
         </button>
       </div>
-
-      <div class="slot-rows">
-        <div class="slot-row" id="row1">
-          <div class="slot-reel">
-            <div class="emoji-strip"></div>
-          </div>
-          <div class="slot-reel">
-            <div class="emoji-strip"></div>
-          </div>
-          <div class="slot-reel">
-            <div class="emoji-strip"></div>
-          </div>
-        </div>
-        <div class="slot-row" id="row2">
-          <div class="slot-reel">
-            <div class="emoji-strip"></div>
-          </div>
-          <div class="slot-reel">
-            <div class="emoji-strip"></div>
-          </div>
-          <div class="slot-reel">
-            <div class="emoji-strip"></div>
-          </div>
-        </div>
-        <div class="slot-row" id="row3">
-          <div class="slot-reel">
-            <div class="emoji-strip"></div>
-          </div>
-          <div class="slot-reel">
-            <div class="emoji-strip"></div>
-          </div>
-          <div class="slot-reel">
-            <div class="emoji-strip"></div>
-          </div>
-        </div>
-      </div>
-
-      
-
-      <div class="controls"></div>
-        <button id="readBtn" onclick="getReading()" style="display: none">
-          קבל את הקריאה שלך ✨
-        </button>
-      </div>
-
-      <div class="reading" id="reading"></div>
     </div>
 
     <script>
       let currentEmojiSets = [];
       let isSpinning = false;
+      let currentReading = '';  // Store the current reading
 
       function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -383,8 +401,10 @@
       async function getReading() {
         const readingDiv = document.getElementById("reading");
         const readBtn = document.getElementById("readBtn");
+        const shareBtn = document.getElementById("shareBtn");
 
         readBtn.disabled = true;
+        shareBtn.style.display = "none";  // Hide share button while loading
         readingDiv.innerHTML = `
           <span class="loading-text">
             מנתח את האמוג'ים<span class="loading-dots"></span>
@@ -406,6 +426,7 @@
 
           const data = await response.json();
           readingDiv.innerHTML = "";
+          currentReading = data.reading;  // Store the reading
 
           // מציג את הטקסט בסטרימינג
           const words = data.reading.split(" ");
@@ -416,22 +437,59 @@
             span.style.animationDelay = `${i * 50}ms`;
             readingDiv.appendChild(span);
 
-            // מחכה יותר זמן בין המילים
             await new Promise((resolve) => setTimeout(resolve, 100));
             
-            // גלילה מהירה יותר אבל בתדירות נמוכה יותר
-            if (i % 5 === 0) { // כל 5 מילים במקום 10
+            if (i % 5 === 0) {
               readingDiv.scrollIntoView({ behavior: "auto", block: "center" });
             }
           }
 
           readBtn.textContent = "לא התחברתי, נסה שוב";
           readBtn.disabled = false;
+          shareBtn.style.display = "inline-block";  // Show share button after reading is complete
         } catch (error) {
           readingDiv.innerHTML = "❌ אופס! משהו השתבש בקריאה";
           readBtn.disabled = false;
         }
       }
+
+      async function shareReading() {
+        const emojiRows = currentEmojiSets.map(row => row.join(' ')).join('\n');
+        const shareText = `🔮 הקורא באמוג'י - הקריאה שלי 🔮:\n\n${emojiRows}\n\n${currentReading}\n\קקבל/י גם את/ה קריאה אישית:\nhttps://emoji-oracle.onrender.com/`;
+
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: '🔮 הקורא באמוג\'י 🔮',
+              text: shareText
+            });
+          } catch (err) {
+            if (err.name !== 'AbortError') {
+              copyToClipboard(shareText);
+            }
+          }
+        } else {
+          copyToClipboard(shareText);
+        }
+      }
+
+      function copyToClipboard(text) {
+        navigator.clipboard.writeText(text)
+          .then(() => {
+            const shareBtn = document.getElementById("shareBtn");
+            const originalText = shareBtn.textContent;
+            shareBtn.textContent = "הטקסט הועתק! ✨";
+            setTimeout(() => {
+              shareBtn.textContent = originalText;
+            }, 2000);
+          })
+          .catch(err => {
+            alert('לא הצלחנו להעתיק את הטקסט. אנא נסה שוב.');
+          });
+      }
+
+      // Add click event listener to share button
+      document.getElementById("shareBtn").addEventListener("click", shareReading);
     </script>
   </body>
 </html>
