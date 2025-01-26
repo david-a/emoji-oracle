@@ -455,7 +455,7 @@
 
       async function shareReading() {
         const emojiRows = currentEmojiSets.map(row => row.join(' ')).join('\n');
-        const shareText = `🔮 הקורא באמוג'י - הקריאה שלי 🔮:\n\n${emojiRows}\n\n${currentReading}\n\קקבל/י גם את/ה קריאה אישית:\nhttps://emoji-oracle.onrender.com/`;
+        const shareText = `🔮 הקורא באמוג'י - הקריאה שלי 🔮:\n\n${emojiRows}\n\n${currentReading}\nקבל/י גם את/ה קריאה אישית:\nhttps://emoji-oracle.onrender.com/`;
 
         if (navigator.share) {
           try {

@@ -22,79 +22,33 @@ def load_emojis():
 
 class EmojiReader:
     def __init__(self):
-        self.emojis = load_emojis()["emojis"]
-        # Blacklist of emojis with negative connotations
-        self.negative_emojis = {
-            "😒",
-            "😞",
-            "😔",
-            "😟",
-            "😕",
-            "🙁",
-            "☹️",
-            "😣",
-            "😖",
-            "😫",
-            "😩",
-            "😢",
-            "😭",
-            "😤",
-            "😠",
-            "😡",
-            "🤬",
-            "😈",
-            "👿",
-            "💀",
-            "☠️",
-            "👻",
-            "👺",
-            "👹",
-            "🤡",
-            "💩",
-            "🤮",
-            "🤢",
-            "🤕",
-            "🤒",
-            "😷",
-            "🤧",
-            "🥵",
-            "🥶",
-            "🤯",
-            "😱",
-            "😨",
-            "😰",
-            "😥",
-            "😓",
-            "🙄",
-            "😑",
-            "😐",
-            "😶",
-            "🌧️",
-            "⛈️",
-            "🌩️",
-            "🌪️",
-            "💣",
-            "🗡️",
-            "⚔️",
-            "🔪",
-            "⚰️",
-            "⚱️",
-            "🏴‍☠️",
-        }
+        data = load_emojis()
+        self.emojis = data["emojis"]
+        self.negative_emojis = set(data["negative_emojis"])
 
     def generate_emoji_sets(self):
-        """Generate 3 sets of 3 random emojis"""
+        """Generate 3 sets of 3 random emojis without duplicates"""
         sets = []
+        used_emojis = set()  # Keep track of used emojis to prevent duplicates
+
         for set_index in range(3):
             if set_index == 2:  # For the third set (future)
-                # Filter out negative emojis for the future set
-                positive_emojis = [
-                    emoji for emoji in self.emojis if emoji not in self.negative_emojis
+                # Filter out negative emojis and already used emojis for the future set
+                available_emojis = [
+                    emoji
+                    for emoji in self.emojis
+                    if emoji not in self.negative_emojis and emoji not in used_emojis
                 ]
-                emoji_set = random.sample(positive_emojis, 3)
             else:
-                emoji_set = random.sample(self.emojis, 3)
+                # Filter out already used emojis for other sets
+                available_emojis = [
+                    emoji for emoji in self.emojis if emoji not in used_emojis
+                ]
+
+            emoji_set = random.sample(available_emojis, 3)
+            used_emojis.update(emoji_set)  # Add selected emojis to used set
             sets.append(emoji_set)
+
         return sets
 
     def get_reading(self, emoji_sets):
